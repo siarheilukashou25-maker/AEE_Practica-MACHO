@@ -45,7 +45,7 @@ public class Teclado {
                     return n;
                 }
                 System.out.println("  Debe estar entre " + min + " y " + max + ".");
-            } catch (NumberFormatException ex) {
+            } catch (NumberFormatException nfe) {
                 System.out.println("  Introduce un número entero.");
             }
         }
@@ -60,7 +60,7 @@ public class Teclado {
                     return n;
                 }
                 System.out.println("  Debe estar entre " + min + " y " + max + ".");
-            } catch (NumberFormatException ex) {
+            } catch (NumberFormatException nfe) {
                 System.out.println("  Introduce un número (ej. 1234.56).");
             }
         }
