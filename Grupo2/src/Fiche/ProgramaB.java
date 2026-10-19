@@ -3,7 +3,6 @@ package Fiche;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,37 +42,32 @@ public class ProgramaB {
             teclado = new BufferedReader(new InputStreamReader(System.in));
             dis = new DataInputStream(new BufferedInputStream(new FileInputStream(fichero)));
 
-            boolean eof = false;
+            FicheRegistro reg = FicheDAO.leer(dis);
+            while (!FicheDAO.ff()) {
+                totalEmpleados++;
 
-            while (!eof) {
-                try {
-                    FicheRegistro reg = FicheDAO.leer(dis);
-                    totalEmpleados++;
+                int antiguedad = annoActual - reg.getAnoIngreso();
 
-                    int antiguedad = annoActual - reg.getAnoIngreso();
+                if (antiguedad >= 10) {
+                    empleadosVeteranos++;
+                    contadorPagina++;
 
-                    if (antiguedad >= 10) {
-                        empleadosVeteranos++;
-                        contadorPagina++;
+                    System.out.println("-> " + reg.getNombreApe()
+                            + " | Sexo: " + reg.getSexo()
+                            + " | Salario: " + reg.getSalario() + "€"
+                            + " | Ingreso: " + reg.getDiaIngreso() + "/" + reg.getMesIngreso() + "/" + reg.getAnoIngreso()
+                            + " | Antigüedad: " + antiguedad + " años"
+                            + " | Tipo: " + reg.getTipoEmpleado().getDescripcion()
+                            + " | Provincia: " + reg.getProvincia().getNombre());
 
-                        System.out.println("-> " + reg.getNombreApe()
-                                + " | Sexo: " + reg.getSexo()
-                                + " | Salario: " + reg.getSalario() + "€"
-                                + " | Ingreso: " + reg.getDiaIngreso() + "/" + reg.getMesIngreso() + "/" + reg.getAnoIngreso()
-                                + " | Antigüedad: " + antiguedad + " años"
-                                + " | Tipo: " + reg.getTipoEmpleado().getDescripcion()
-                                + " | Provincia: " + reg.getProvincia().getNombre());
-
-                        if (contadorPagina == TAMANO_PAGINA) {
-                            System.out.println("\nPulse INTRO para ver la siguiente página");
-                            teclado.readLine();
-                            contadorPagina = 0;
-                            System.out.println();
-                        }
+                    if (contadorPagina == TAMANO_PAGINA) {
+                        System.out.println("\nPulse INTRO para ver la siguiente página");
+                        teclado.readLine();
+                        contadorPagina = 0;
+                        System.out.println();
                     }
-                } catch (EOFException eofe) {
-                    eof = true;
                 }
+                reg = FicheDAO.leer(dis);
             }
 
             System.out.println("----------------------------------------------------");
@@ -89,7 +83,6 @@ public class ProgramaB {
         } catch (IOException e) {
             System.err.println("Error de E/S al leer el fichero: " + e.getMessage());
         } finally {
-            // Liberación limpia de recursos
             if (dis != null) {
                 try {
                     dis.close();
