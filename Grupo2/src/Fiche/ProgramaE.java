@@ -50,7 +50,7 @@ public class ProgramaE {
                 }
             }
         } catch (FileNotFoundException e) {
-            System.err.println("No existe el fichero " + ".");
+            System.err.println("No existe el fichero " + NOMBRE_FICHERO + ".");
         } catch (IOException e) {
             System.err.println("Error de E/S: " + e.getMessage());
         } finally {

@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
@@ -76,9 +75,9 @@ public class ProgramaC {
     private static int calcularTrienios(FicheRegistro reg, GregorianCalendar hoy) {
         GregorianCalendar ingreso = new GregorianCalendar(reg.getAnoIngreso(), reg.getMesIngreso() - 1, reg.getDiaIngreso());
         
-        int anos = hoy.get(Calendar.YEAR) - ingreso.get(Calendar.YEAR);
+        int anos = hoy.get(GregorianCalendar.YEAR) - ingreso.get(GregorianCalendar.YEAR);
         
-        ingreso.add(Calendar.YEAR, anos);
+        ingreso.add(GregorianCalendar.YEAR, anos);
         
         if (ingreso.after(hoy)) {
             anos--;

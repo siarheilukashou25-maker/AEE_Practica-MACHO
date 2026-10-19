@@ -5,7 +5,6 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
@@ -24,75 +23,73 @@ public class ProgramaD {
         
         if (!fichero.exists()) {
             System.out.println("El fichero " + NOMBRE_FICHERO + " no existe.");
-            return;
-        }
+        } else {
+            System.out.println("EMPLEADO(S) CON EL SUELDO SUPERIOR");
         
-        System.out.println("EMPLEADO(S) CON EL SUELDO SUPERIOR");
+            GregorianCalendar hoy = new GregorianCalendar();
         
-        GregorianCalendar hoy = new GregorianCalendar();
+            double maxSueldo = -1.0;
         
-        double maxSueldo = -1.0;
-        
-        DataInputStream dis1 = null;
-        try {
-            dis1 = new DataInputStream(new BufferedInputStream(new FileInputStream(fichero)));
-            FicheRegistro reg = FicheDAO.leer(dis1);
+            DataInputStream dis1 = null;
+            try {
+                dis1 = new DataInputStream(new BufferedInputStream(new FileInputStream(fichero)));
+                FicheRegistro reg = FicheDAO.leer(dis1);
             
-            while (!FicheDAO.ff() && reg != null) {
-                double sueldoActual = calcularSueldo(reg, hoy);
+                while (!FicheDAO.ff() && reg != null) {
+                    double sueldoActual = calcularSueldo(reg, hoy);
                 
-                if (sueldoActual > maxSueldo) {
-                    maxSueldo = sueldoActual;
+                    if (sueldoActual > maxSueldo) {
+                        maxSueldo = sueldoActual;
+                    }
+                    reg = FicheDAO.leer(dis1);
                 }
-                reg = FicheDAO.leer(dis1);
+            } catch (IOException e) {
+                System.err.println("Error de E/S en la primera pasada del fichero: " + e.getMessage());
+            } finally {
+                if (dis1 != null) {
+                    try {
+                        dis1.close();
+                    } catch (IOException e) {
+                        System.err.println("Error al cerrar el flujo en la primera pasada: " + e.getMessage());
+                    }
+                }
             }
-        } catch (IOException e) {
-            System.err.println("Error de E/S en la primera pasada del fichero: " + e.getMessage());
-        } finally {
-            if (dis1 != null) {
+
+            if (maxSueldo < 0) {
+                System.out.println("El fichero está vacío o no se pudieron procesar datos.");
+            } else {
+                DataInputStream dis2 = null;
                 try {
-                    dis1.close();
-                } catch (IOException e) {
-                    System.err.println("Error al cerrar el flujo en la primera pasada: " + e.getMessage());
-                }
-            }
-        }
-        
-        if (maxSueldo < 0) {
-            System.out.println("El fichero está vacío o no se pudieron procesar datos.");
-            return;
-        }
-        
-        DataInputStream dis2 = null;
-        try {
-            dis2 = new DataInputStream(new BufferedInputStream(new FileInputStream(fichero)));
+                    dis2 = new DataInputStream(new BufferedInputStream(new FileInputStream(fichero)));
             
-            System.out.printf("Sueldo máximo encontrado: %.2f€\n", maxSueldo);
-            System.out.println("Empleado(s) con el sueldo máximo:");
-            System.out.println("----------------------------------------------------");
+                    System.out.printf("Sueldo máximo encontrado: %.2f€\n", maxSueldo);
+                    System.out.println("Empleado(s) con el sueldo máximo:");
+                    System.out.println("----------------------------------------------------");
             
-            FicheRegistro reg = FicheDAO.leer(dis2);
-            while (!FicheDAO.ff() && reg != null) {
-                double sueldoActual = calcularSueldo(reg, hoy);
+                    FicheRegistro reg = FicheDAO.leer(dis2);
+                    while (!FicheDAO.ff() && reg != null) {
+                        double sueldoActual = calcularSueldo(reg, hoy);
                 
-                if (Math.abs(sueldoActual - maxSueldo) < 0.001) {
-                    System.out.println("-> Nombre: " + reg.getNombreApe()
-                            + " | Sueldo Total: " + String.format("%.2f", sueldoActual) + "€"
-                            + " | Provincia: " + reg.getProvincia().getNombre()
-                            + " | Tipo: " + reg.getTipoEmpleado().getDescripcion());
-                }
-                reg = FicheDAO.leer(dis2);
-            }
-            System.out.println("----------------------------------------------------");
+                        if (Math.abs(sueldoActual - maxSueldo) < 0.001) {
+                            System.out.println("-> Nombre: " + reg.getNombreApe()
+                                    + " | Sueldo Total: " + String.format("%.2f", sueldoActual) + "€"
+                                    + " | Provincia: " + reg.getProvincia().getNombre()
+                                    + " | Tipo: " + reg.getTipoEmpleado().getDescripcion());
+                        }
+                        reg = FicheDAO.leer(dis2);
+                    }
+                    System.out.println("----------------------------------------------------");
             
-        } catch (IOException e) {
-            System.err.println("Error de E/S en la segunda pasada del fichero: " + e.getMessage());
-        } finally {
-            if (dis2 != null) {
-                try {
-                    dis2.close();
                 } catch (IOException e) {
-                    System.err.println("Error al cerrar el flujo en la segunda pasada: " + e.getMessage());
+                    System.err.println("Error de E/S en la segunda pasada del fichero: " + e.getMessage());
+                } finally {
+                    if (dis2 != null) {
+                        try {
+                            dis2.close();
+                        } catch (IOException e) {
+                            System.err.println("Error al cerrar el flujo en la segunda pasada: " + e.getMessage());
+                        }
+                    }
                 }
             }
         }
@@ -116,9 +113,9 @@ public class ProgramaD {
     private static int calcularTrienios(FicheRegistro reg, GregorianCalendar hoy) {
         GregorianCalendar ingreso = new GregorianCalendar(reg.getAnoIngreso(), reg.getMesIngreso() - 1, reg.getDiaIngreso());
         
-        int anos = hoy.get(Calendar.YEAR) - ingreso.get(Calendar.YEAR);
+        int anos = hoy.get(GregorianCalendar.YEAR) - ingreso.get(GregorianCalendar.YEAR);
         
-        ingreso.add(Calendar.YEAR, anos);
+        ingreso.add(GregorianCalendar.YEAR, anos);
         
         if (ingreso.after(hoy)) {
             anos--;

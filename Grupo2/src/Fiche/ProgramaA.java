@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
@@ -18,10 +17,10 @@ import java.util.GregorianCalendar;
 public class ProgramaA {
 
     private static final String NOMBRE_FICHERO = "Ficheros" + File.separator + "FICHE.DAT";
-    private static final int MAX_NOMBRE = 50;
+    private static final int MAX_NOMBRE = 30;
     private static final int ANO_MINIMO = 1900;
     private static final String REGEX_NOMBRE = "\\p{L}+([ '\\-]\\p{L}+)*";
-    private static final String REGEX_SALARIO = "\\d{1,6}([.,]\\d{1,2})?";
+    private static final String REGEX_SALARIO = "\\d{1,4}([.,]\\d{1,2})?";
     private static final String REGEX_ENTERO = "\\d{1,9}";
 
     private static boolean finEntrada = false;
@@ -148,15 +147,15 @@ public class ProgramaA {
         GregorianCalendar hoy = new GregorianCalendar();
         GregorianCalendar fecha;
         do {
-            int ano = pedirEntero(teclado, "Año: ", ANO_MINIMO, hoy.get(Calendar.YEAR));
+            int ano = pedirEntero(teclado, "Año: ", ANO_MINIMO, hoy.get(GregorianCalendar.YEAR));
             int mes = pedirEntero(teclado, "Mes: ", 1, 12);
             fecha = new GregorianCalendar(ano, mes - 1, 1);
-            int dia = pedirEntero(teclado, "Día: ", 1, fecha.getActualMaximum(Calendar.DAY_OF_MONTH));
-            fecha.set(Calendar.DAY_OF_MONTH, dia);
+            int dia = pedirEntero(teclado, "Día: ", 1, fecha.getActualMaximum(GregorianCalendar.DAY_OF_MONTH));
+            fecha.set(GregorianCalendar.DAY_OF_MONTH, dia);
         } while (fecha.after(hoy) && !finEntrada);
-        reg.setAnoIngreso((short) fecha.get(Calendar.YEAR));
-        reg.setMesIngreso((byte) (fecha.get(Calendar.MONTH) + 1));
-        reg.setDiaIngreso((byte) fecha.get(Calendar.DAY_OF_MONTH));
+        reg.setAnoIngreso((short) fecha.get(GregorianCalendar.YEAR));
+        reg.setMesIngreso((byte) (fecha.get(GregorianCalendar.MONTH) + 1));
+        reg.setDiaIngreso((byte) fecha.get(GregorianCalendar.DAY_OF_MONTH));
     }
 
     private static int pedirEntero(BufferedReader teclado, String mensaje, int min, int max) throws IOException {
