@@ -2,6 +2,9 @@
 
 # Planificación de Tiempos y Roles
 
+Santiago González
+Siarhei Lukashou
+
 ## 1. Desglose del Problema
 
 * ¿Cuáles son los módulos/clases principales?
@@ -29,3 +32,8 @@ Los métodos están en UML.
 	* Objetivo técnico: Aplicación que obtenga el nombre de la provincia(s) con mayor número de empleados.
 * **Pruebas (1 horas)**
 	* Objetivo técnico: Probar y depurar las aplicaciones
+
+## 3. Qué hemos hecho
+
+* Santiago: Implementación del UML, A, B, D, Prueba y Revisión
+* Siarhei: A, C, E, Prueba y Revisión
