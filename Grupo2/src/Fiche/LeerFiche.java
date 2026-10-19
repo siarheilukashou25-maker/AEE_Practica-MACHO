@@ -1,6 +1,7 @@
 package Fiche;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,21 +13,19 @@ import java.io.IOException;
  * @author Santiago Gonzalez
  */
 public class LeerFiche {
-    private static final String NOMBRE_FICHERO = "FICHE.DAT";
+    private static final String NOMBRE_FICHERO = "Ficheros" + File.separator + "FICHE.DAT";
 
     public static void main(String[] args) {
         DataInputStream dis = null;
         long contador = 0;
         try {
             dis = new DataInputStream(new BufferedInputStream(new FileInputStream(NOMBRE_FICHERO)));
-            System.out.printf("%-30s %s %10s %-10s %-12s %-8s%n",
-                    "NOMBRE Y APELLIDOS", "S", "SALARIO", "INGRESO", "TIPO", "PROVINCIA");
+            System.out.println("NOMBRE Y APELLIDOS | SEXO | SALARIO | INGRESO | TIPO | PROVINCIA");
             FicheRegistro reg = FicheDAO.leer(dis);
             while (!FicheDAO.ff()) {
-                System.out.printf("%-30s %c %10.2f %02d/%02d/%04d %-12s %-8s%n",
-                        reg.getNombreApe(), reg.getSexo(), reg.getSalario(),
-                        reg.getDiaIngreso(), reg.getMesIngreso(), reg.getAnoIngreso(),
-                        reg.getTipoEmpleado().getDescripcion(), reg.getProvincia().getNombre());
+                System.out.println(reg.getNombreApe() + " | " + reg.getSexo() + " | " + reg.getSalario() + " | "
+                        + reg.getDiaIngreso() + "/" + reg.getMesIngreso() + "/" + reg.getAnoIngreso() + " | "
+                        + reg.getTipoEmpleado().getDescripcion() + " | " + reg.getProvincia().getNombre());
                 contador++;
                 reg = FicheDAO.leer(dis);
             }
@@ -39,8 +38,6 @@ public class LeerFiche {
             System.err.println("No existe el fichero " + NOMBRE_FICHERO + ".");
         } catch (IOException e) {
             System.err.println("Error de E/S: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Fichero corrupto tras " + contador + " registro(s): " + e.getMessage());
         } finally {
             if (dis != null) {
                 try {

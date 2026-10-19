@@ -15,9 +15,9 @@ import java.util.GregorianCalendar;
  * @author LukashouSiarhei
  * @author Santiago Gonzalez
  */
-public class CrearFiche {
+public class ProgramaA {
 
-    private static final String NOMBRE_FICHERO = "FICHE.DAT";
+    private static final String NOMBRE_FICHERO = "Ficheros" + File.separator + "FICHE.DAT";
     private static final int MAX_NOMBRE = 50;
     private static final int ANO_MINIMO = 1900;
     private static final String REGEX_NOMBRE = "\\p{L}+([ '\\-]\\p{L}+)*";
