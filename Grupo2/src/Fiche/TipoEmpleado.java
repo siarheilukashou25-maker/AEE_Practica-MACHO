@@ -1,5 +1,10 @@
 package Fiche;
 
+/**
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
+ */
 public enum TipoEmpleado {
     C('C', "A comisión"),
     F('F', "Fijos"),

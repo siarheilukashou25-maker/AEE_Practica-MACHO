@@ -1,7 +1,11 @@
 package Fiche;
 
+/**
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
+ */
 public class FicheRegistro {
-
     private String nombreApe;
     private char sexo;
     private double salario;
@@ -13,7 +17,6 @@ public class FicheRegistro {
 
     public FicheRegistro() {
     }
-
 
     public String getNombreApe() {
         return nombreApe;

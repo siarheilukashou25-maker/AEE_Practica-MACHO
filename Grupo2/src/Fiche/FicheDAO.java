@@ -5,18 +5,18 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 
+/**
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
+ */
 public class FicheDAO {
-
     private static boolean esFinFichero = false;
 
     public static boolean ff() {
         return esFinFichero;
     }
 
-    /**
-     * Lee un registro. Si se alcanza el fin de fichero, devuelve null
-     * y ff() pasa a ser true.
-     */
     public static FicheRegistro leer(DataInputStream data) throws IOException {
         FicheRegistro reg = null;
         try {

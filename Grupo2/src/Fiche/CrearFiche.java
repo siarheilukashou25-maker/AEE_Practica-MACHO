@@ -3,6 +3,7 @@ package Fiche;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,45 +11,53 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
- * Crea el fichero FICHE.DAT y lo llena por teclado.
- * Cada registro se escribe en cuanto se introduce: en memoria solo
- * hay un registro a la vez.
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
  */
 public class CrearFiche {
 
     private static final String NOMBRE_FICHERO = "FICHE.DAT";
     private static final int MAX_NOMBRE = 50;
     private static final int ANO_MINIMO = 1900;
-    private static final double SALARIO_MAXIMO = 999999.99;
-
-    // Letras (incluidas las acentuadas y la ñ), separadas por un espacio, guion o apóstrofo
     private static final String PATRON_NOMBRE = "\\p{L}+([ '\\-]\\p{L}+)*";
-    // Hasta 6 cifras enteras y opcionalmente 1 o 2 decimales con punto o coma
     private static final String PATRON_SALARIO = "\\d{1,6}([.,]\\d{1,2})?";
     private static final String PATRON_ENTERO = "\\d{1,9}";
 
-    private static final BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
     private static boolean finEntrada = false;
 
     public static void main(String[] args) {
+        BufferedReader teclado = null;
         DataOutputStream dos = null;
         long contador = 0;
         try {
-            dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(NOMBRE_FICHERO)));
-            boolean otro = pedirSiNo("¿Desea introducir un registro? (S/N): ");
-            while (otro) {
-                FicheRegistro reg = pedirRegistro();
-                if (!finEntrada) {
-                    FicheDAO.escribir(dos, reg);
-                    contador++;
-                }
-                otro = !finEntrada && pedirSiNo("¿Otro registro? (S/N): ");
+            teclado = new BufferedReader(new InputStreamReader(System.in));
+            boolean anadir = false;
+            if (new File(NOMBRE_FICHERO).exists()) {
+                anadir = pedirAnadir(teclado);
+                System.out.println();
+            }
+            if (!finEntrada) {
+                dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(NOMBRE_FICHERO, anadir)));
+                boolean otro;
+                do {
+                    FicheRegistro reg = pedirRegistro(teclado);
+                    if (!finEntrada) {
+                        FicheDAO.escribir(dos, reg);
+                        contador++;
+                    }
+                    otro = !finEntrada && pedirSiNo(teclado, "¿Otro registro? (S/N): ");
+                    System.out.println();
+                } while (otro);
             }
             if (finEntrada) {
-                System.out.println();
                 System.out.println("Entrada de teclado cerrada.");
             }
-            System.out.println("Fichero " + NOMBRE_FICHERO + " creado con " + contador + " registro(s).");
+            if (anadir) {
+                System.out.println("Se han añadido " + contador + " registro(s) al fichero " + NOMBRE_FICHERO + ".");
+            } else if (dos != null) {
+                System.out.println("Fichero " + NOMBRE_FICHERO + " creado con " + contador + " registro(s).");
+            }
         } catch (IOException e) {
             System.err.println("Error de E/S: " + e.getMessage());
         } finally {
@@ -59,14 +68,17 @@ public class CrearFiche {
                     System.err.println("Error al cerrar el fichero: " + e.getMessage());
                 }
             }
+            if (teclado != null) {
+                try {
+                    teclado.close();
+                } catch (IOException e) {
+                    System.err.println("Error al cerrar el teclado: " + e.getMessage());
+                }
+            }
         }
     }
 
-    /**
-     * Lee una línea del teclado. Si la entrada se ha cerrado, activa
-     * finEntrada y devuelve una cadena vacía.
-     */
-    private static String leerLinea() throws IOException {
+    private static String leerLinea(BufferedReader teclado) throws IOException {
         String linea = teclado.readLine();
         if (linea == null) {
             finEntrada = true;
@@ -75,128 +87,94 @@ public class CrearFiche {
         return linea.trim();
     }
 
-    private static FicheRegistro pedirRegistro() throws IOException {
+    private static FicheRegistro pedirRegistro(BufferedReader teclado) throws IOException {
         FicheRegistro reg = new FicheRegistro();
-        System.out.println("--- Nuevo registro ---");
-        reg.setNombreApe(pedirNombre());
-        reg.setSexo(pedirSexo());
-        reg.setSalario(pedirSalario());
-        pedirFechaIngreso(reg);
-        reg.setTipoEmpleado(pedirTipoEmpleado());
-        reg.setProvincia(pedirProvincia());
+        reg.setNombreApe(pedirNombre(teclado));
+        reg.setSexo(pedirSexo(teclado));
+        reg.setSalario(pedirSalario(teclado));
+        pedirFechaIngreso(teclado, reg);
+        reg.setTipoEmpleado(pedirTipoEmpleado(teclado));
+        reg.setProvincia(pedirProvincia(teclado));
         return reg;
     }
 
-    // ---------- Nombre ----------
-
-    private static String pedirNombre() throws IOException {
-        System.out.print("Nombre y apellidos (máx. " + MAX_NOMBRE + " caracteres): ");
-        String nombre = leerNombre();
-        while (!finEntrada && !nombre.matches(PATRON_NOMBRE)) {
-            System.out.print("  Solo letras, espacios, guiones y apóstrofos. Nombre y apellidos: ");
-            nombre = leerNombre();
-        }
+    private static String pedirNombre(BufferedReader teclado) throws IOException {
+        String nombre;
+        boolean valido;
+        do {
+            System.out.print("Nombre y apellidos: ");
+            StringBuffer sb = new StringBuffer(leerLinea(teclado).replaceAll("\\s+", " "));
+            nombre = sb.toString();
+            valido = sb.length() <= MAX_NOMBRE;
+            if (valido) {
+                valido = nombre.matches(PATRON_NOMBRE);
+            } else {
+                System.out.println("Nombre demasiado largo (máximo " + MAX_NOMBRE + " caracteres).");
+            }
+        } while (!valido && !finEntrada);
         return nombre;
     }
 
-    /** Lee el nombre, unifica los espacios y lo limita a MAX_NOMBRE caracteres. */
-    private static String leerNombre() throws IOException {
-        StringBuffer sb = new StringBuffer(leerLinea().replaceAll("\\s+", " "));
-        if (sb.length() > MAX_NOMBRE) {
-            sb.setLength(MAX_NOMBRE);
-            System.out.println("  Recortado a " + MAX_NOMBRE + " caracteres: " + sb);
-        }
-        return sb.toString().trim();
-    }
-
-    // ---------- Sexo ----------
-
-    private static char pedirSexo() throws IOException {
-        System.out.print("Sexo (H/M): ");
-        String linea = leerLinea().toUpperCase();
-        while (!finEntrada && !linea.equals("H") && !linea.equals("M")) {
-            System.out.print("  Introduzca H o M: ");
-            linea = leerLinea().toUpperCase();
-        }
+    private static char pedirSexo(BufferedReader teclado) throws IOException {
         char sexo = ' ';
-        if (!finEntrada) {
-            sexo = linea.charAt(0);
-        }
+        boolean valido;
+        do {
+            System.out.print("Sexo (H/M): ");
+            String linea = leerLinea(teclado).toUpperCase();
+            valido = linea.equals("H") || linea.equals("M");
+            if (valido) {
+                sexo = linea.charAt(0);
+            }
+        } while (!valido && !finEntrada);
         return sexo;
     }
 
-    // ---------- Salario ----------
-
-    private static double pedirSalario() throws IOException {
-        System.out.print("Salario (0,01 - " + SALARIO_MAXIMO + "): ");
-        String linea = leerLinea();
-        while (!finEntrada && !esSalarioValido(linea)) {
-            System.out.print("  Salario no válido (ejemplo: 1250,50). Salario: ");
-            linea = leerLinea();
-        }
+    private static double pedirSalario(BufferedReader teclado) throws IOException {
         double salario = 0;
-        if (!finEntrada) {
-            salario = Double.parseDouble(linea.replace(',', '.'));
-        }
+        boolean valido;
+        do {
+            System.out.print("Salario: ");
+            String linea = leerLinea(teclado);
+            valido = linea.matches(PATRON_SALARIO);
+            if (valido) {
+                salario = Double.parseDouble(linea.replace(',', '.'));
+                valido = salario > 0;
+            }
+        } while (!valido && !finEntrada);
         return salario;
     }
 
-    private static boolean esSalarioValido(String linea) {
-        return linea.matches(PATRON_SALARIO)
-                && Double.parseDouble(linea.replace(',', '.')) > 0;
-    }
-
-    // ---------- Fecha de ingreso ----------
-
-    private static void pedirFechaIngreso(FicheRegistro reg) throws IOException {
+    private static void pedirFechaIngreso(BufferedReader teclado, FicheRegistro reg) throws IOException {
         GregorianCalendar hoy = new GregorianCalendar();
-        System.out.println("Fecha de ingreso:");
-        GregorianCalendar fecha = pedirFecha(hoy.get(Calendar.YEAR));
-        while (!finEntrada && fecha.after(hoy)) {
-            System.out.println("  La fecha de ingreso no puede ser posterior a hoy. Fecha de ingreso:");
-            fecha = pedirFecha(hoy.get(Calendar.YEAR));
-        }
+        GregorianCalendar fecha;
+        do {
+            int ano = pedirEntero(teclado, "Año: ", ANO_MINIMO, hoy.get(Calendar.YEAR));
+            int mes = pedirEntero(teclado, "Mes: ", 1, 12);
+            fecha = new GregorianCalendar(ano, mes - 1, 1);
+            int dia = pedirEntero(teclado, "Día: ", 1, fecha.getActualMaximum(Calendar.DAY_OF_MONTH));
+            fecha.set(Calendar.DAY_OF_MONTH, dia);
+        } while (fecha.after(hoy) && !finEntrada);
         reg.setAnoIngreso((short) fecha.get(Calendar.YEAR));
         reg.setMesIngreso((byte) (fecha.get(Calendar.MONTH) + 1));
         reg.setDiaIngreso((byte) fecha.get(Calendar.DAY_OF_MONTH));
     }
 
-    /** Pide año, mes y día; el día se limita al número de días reales del mes. */
-    private static GregorianCalendar pedirFecha(int anoActual) throws IOException {
-        int ano = pedirEntero("  Año (" + ANO_MINIMO + "-" + anoActual + "): ", ANO_MINIMO, anoActual);
-        int mes = pedirEntero("  Mes (1-12): ", 1, 12);
-        GregorianCalendar fecha = new GregorianCalendar(ano, mes - 1, 1);
-        int maxDia = fecha.getActualMaximum(Calendar.DAY_OF_MONTH);
-        int dia = pedirEntero("  Día (1-" + maxDia + "): ", 1, maxDia);
-        fecha.set(Calendar.DAY_OF_MONTH, dia);
-        return fecha;
-    }
-
-    // ---------- Enteros ----------
-
-    private static int pedirEntero(String mensaje, int min, int max) throws IOException {
-        System.out.print(mensaje);
-        String linea = leerLinea();
-        while (!finEntrada && !esEnteroEnRango(linea, min, max)) {
-            System.out.print("  Debe ser un número entero entre " + min + " y " + max + ". " + mensaje.trim() + " ");
-            linea = leerLinea();
-        }
+    private static int pedirEntero(BufferedReader teclado, String mensaje, int min, int max) throws IOException {
         int valor = 0;
-        if (!finEntrada) {
-            valor = Integer.parseInt(linea);
-        }
+        boolean valido;
+        do {
+            System.out.print(mensaje);
+            String linea = leerLinea(teclado);
+            valido = linea.matches(PATRON_ENTERO);
+            if (valido) {
+                valor = Integer.parseInt(linea);
+                valido = valor >= min && valor <= max;
+            }
+        } while (!valido && !finEntrada);
         return valor;
     }
 
-    private static boolean esEnteroEnRango(String linea, int min, int max) {
-        return linea.matches(PATRON_ENTERO)
-                && Integer.parseInt(linea) >= min
-                && Integer.parseInt(linea) <= max;
-    }
-
-    // ---------- Tipo de empleado ----------
-
-    private static TipoEmpleado pedirTipoEmpleado() throws IOException {
+    private static TipoEmpleado pedirTipoEmpleado(BufferedReader teclado) throws IOException {
         StringBuilder menu = new StringBuilder("Tipo de empleado (");
         TipoEmpleado[] valores = TipoEmpleado.values();
         for (int i = 0; i < valores.length; i++) {
@@ -206,74 +184,63 @@ public class CrearFiche {
             }
         }
         menu.append("): ");
-        System.out.print(menu);
-        String linea = leerLinea().toUpperCase();
-        while (!finEntrada && !esTipoValido(linea)) {
-            System.out.print("  Código no válido. " + menu);
-            linea = leerLinea().toUpperCase();
-        }
         TipoEmpleado tipo = null;
-        if (!finEntrada) {
-            tipo = TipoEmpleado.fromCodigo(linea.charAt(0));
-        }
+        do {
+            System.out.print(menu);
+            String linea = leerLinea(teclado).toUpperCase();
+            try {
+                if (linea.length() == 1) {
+                    tipo = TipoEmpleado.fromCodigo(linea.charAt(0));
+                }
+            } catch (IllegalArgumentException e) {
+                tipo = null;
+            }
+        } while (tipo == null && !finEntrada);
         return tipo;
     }
 
-    private static boolean esTipoValido(String linea) {
-        boolean valido = false;
-        if (linea.length() == 1) {
-            try {
-                TipoEmpleado.fromCodigo(linea.charAt(0));
-                valido = true;
-            } catch (IllegalArgumentException e) {
-                valido = false;
-            }
-        }
-        return valido;
-    }
-
-    // ---------- Provincia ----------
-
-    private static Provincia pedirProvincia() throws IOException {
-        System.out.println("Provincias:");
+    private static Provincia pedirProvincia(BufferedReader teclado) throws IOException {
+        System.out.println();
         for (Provincia p : Provincia.values()) {
-            System.out.println("  " + p.getCodigo() + " - " + p.getNombre());
+            System.out.println(p.getCodigo() + " - " + p.getNombre());
         }
-        System.out.print("Código de provincia: ");
-        String linea = leerLinea();
-        while (!finEntrada && !esProvinciaValida(linea)) {
-            System.out.print("  Código no válido. Código de provincia: ");
-            linea = leerLinea();
-        }
+        System.out.println();
         Provincia prov = null;
-        if (!finEntrada) {
-            prov = Provincia.fromCodigo(Byte.parseByte(linea));
-        }
+        do {
+            System.out.print("Código de provincia: ");
+            String linea = leerLinea(teclado);
+            try {
+                if (linea.matches("\\d{1,3}")) {
+                    prov = Provincia.fromCodigo(Byte.parseByte(linea));
+                }
+            } catch (IllegalArgumentException e) {
+                prov = null;
+            }
+        } while (prov == null && !finEntrada);
         return prov;
     }
 
-    private static boolean esProvinciaValida(String linea) {
-        boolean valida = false;
-        if (esEnteroEnRango(linea, 0, Byte.MAX_VALUE)) {
-            try {
-                Provincia.fromCodigo(Byte.parseByte(linea));
-                valida = true;
-            } catch (IllegalArgumentException e) {
-                valida = false;
-            }
-        }
-        return valida;
+    private static boolean pedirAnadir(BufferedReader teclado) throws IOException {
+        String opcion;
+        boolean confirmado;
+        do {
+            do {
+                System.out.print("El fichero " + NOMBRE_FICHERO + " ya existe. ¿Borrarlo y crear uno nuevo (B) o añadir registros al existente (A)? (B/A): ");
+                opcion = leerLinea(teclado).toUpperCase();
+            } while (!opcion.equals("B") && !opcion.equals("A") && !finEntrada);
+            confirmado = opcion.equals("A")
+                    || finEntrada
+                    || pedirSiNo(teclado, "¿Está seguro de que desea borrar el fichero existente y crear uno nuevo? (S/N): ");
+        } while (!confirmado && !finEntrada);
+        return opcion.equals("A");
     }
 
-    // ---------- S/N ----------
-
-    private static boolean pedirSiNo(String mensaje) throws IOException {
-        System.out.print(mensaje);
-        String respuesta = leerLinea().toUpperCase();
-        while (!finEntrada && !respuesta.equals("S") && !respuesta.equals("N")) {
-            System.out.print("  Introduzca S o N. " + mensaje);
-            respuesta = leerLinea().toUpperCase();
-        }
+    private static boolean pedirSiNo(BufferedReader teclado, String mensaje) throws IOException {
+        String respuesta;
+        do {
+            System.out.print(mensaje);
+            respuesta = leerLinea(teclado).toUpperCase();
+        } while (!respuesta.equals("S") && !respuesta.equals("N") && !finEntrada);
         return respuesta.equals("S");
     }
 }

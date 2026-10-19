@@ -7,11 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- * Lee y muestra por pantalla el fichero FICHE.DAT.
- * Se lee registro a registro: en memoria solo hay un registro a la vez.
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
  */
 public class LeerFiche {
-
     private static final String NOMBRE_FICHERO = "FICHE.DAT";
 
     public static void main(String[] args) {

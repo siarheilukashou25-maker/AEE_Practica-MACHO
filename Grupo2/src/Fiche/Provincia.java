@@ -1,5 +1,10 @@
 package Fiche;
 
+/**
+ *
+ * @author LukashouSiarhei
+ * @author Santiago Gonzalez
+ */
 public enum Provincia {
     ALMERIA(1, "Almería"),
     CADIZ(2, "Cádiz"),
