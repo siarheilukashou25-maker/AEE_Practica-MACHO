@@ -20,9 +20,9 @@ public class CrearFiche {
     private static final String NOMBRE_FICHERO = "FICHE.DAT";
     private static final int MAX_NOMBRE = 50;
     private static final int ANO_MINIMO = 1900;
-    private static final String PATRON_NOMBRE = "\\p{L}+([ '\\-]\\p{L}+)*";
-    private static final String PATRON_SALARIO = "\\d{1,6}([.,]\\d{1,2})?";
-    private static final String PATRON_ENTERO = "\\d{1,9}";
+    private static final String REGEX_NOMBRE = "\\p{L}+([ '\\-]\\p{L}+)*";
+    private static final String REGEX_SALARIO = "\\d{1,6}([.,]\\d{1,2})?";
+    private static final String REGEX_ENTERO = "\\d{1,9}";
 
     private static boolean finEntrada = false;
 
@@ -107,7 +107,7 @@ public class CrearFiche {
             nombre = sb.toString();
             valido = sb.length() <= MAX_NOMBRE;
             if (valido) {
-                valido = nombre.matches(PATRON_NOMBRE);
+                valido = nombre.matches(REGEX_NOMBRE);
             } else {
                 System.out.println("Nombre demasiado largo (máximo " + MAX_NOMBRE + " caracteres).");
             }
@@ -135,7 +135,7 @@ public class CrearFiche {
         do {
             System.out.print("Salario: ");
             String linea = leerLinea(teclado);
-            valido = linea.matches(PATRON_SALARIO);
+            valido = linea.matches(REGEX_SALARIO);
             if (valido) {
                 salario = Double.parseDouble(linea.replace(',', '.'));
                 valido = salario > 0;
@@ -165,7 +165,7 @@ public class CrearFiche {
         do {
             System.out.print(mensaje);
             String linea = leerLinea(teclado);
-            valido = linea.matches(PATRON_ENTERO);
+            valido = linea.matches(REGEX_ENTERO);
             if (valido) {
                 valor = Integer.parseInt(linea);
                 valido = valor >= min && valor <= max;
